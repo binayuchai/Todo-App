@@ -1,0 +1,321 @@
+{% load static %}
+
+
+
+
+{% comment %} Edit Modal start {% endcomment %}  
+
+
+{% comment %}ModalStart {% endcomment%}
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Task</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="update_item" action="" method="post">
+          {% csrf_token %}
+            {{ form }}
+            <input type="hidden" name="todoitem" id="todoitem">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button id="btn_update" type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    
+   </div>
+  </div>
+</div> 
+<!-- ModalEnd -->
+
+{% comment %} Edit Modal ends{% endcomment %}  
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet" >
+  </head>
+<body>
+ 
+  <div class="container">
+    <h1 class ="my-3">Todo App</h1>
+    <form id="submit-task-form" action="" method="post">
+      {% csrf_token %}
+        {{ form }}
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    
+
+
+
+
+
+    <h3 class="my-4">Tasks To Do:</h3>
+   
+    <div class="row" id="todo_list">
+      {% comment %} {% for c in context %}
+      <div class="col-lg-4 col-sm-4">
+        <div class="card" style="width: 18rem;">
+          {% comment %} <img src="..." class="card-img-top" alt="..."> 
+          <div class="card-body m-3">
+            <h4 class="card-title">{{ c.title }}</h4>
+           
+
+            <button class="btn btn-primary" data-taskid = "{{c.id}}" data-bs-toggle="modal" data-bs-target="#editModal" >update</button>
+          
+            <button class="btn btn-success" data-itemid = "{{c.id}}" data-bs-toggle="modal" data-bs-target="#_deleteModal" >completed</button>
+          </div>
+      
+        </div>
+      </div>  
+      {% endfor %} {% endcomment %}
+    </div>
+</div>
+
+
+
+
+{% comment %} Delete Modal starts {% endcomment %}  
+
+
+
+<!-- ModalStart -->
+<!-- Button trigger modal -->
+
+
+<!-- Modal -->
+<div class="modal fade" id="_deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Remove Title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Completed your task? </p>
+        <form id="delete_item" action="" method="post">
+          {% csrf_token %}
+            
+            <input type="hidden" name="_delitem" id="_delitem">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+        <button id="btn_delete" type ="submit" class="btn btn-danger">Yes</button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+<!-- ModalEnd -->
+
+
+{% comment %} Delete Modal ends {% endcomment %}  
+
+<script src="{% static 'js/bs.min.js' %}"></script>
+<script src="{% static 'js/jquery.min.js' %}"></script>
+<script src="{% static 'js/main.js' %}"></script>
+
+
+<script type="text/javascript">
+
+// Update Script  
+const modal = document.getElementById('editModal');
+modal.addEventListener('show.bs.modal',(e)=>{
+    let btn = e.relatedTarget;
+    console.log(btn)
+    let todoItem = document.getElementById("todoitem");
+    todoItem.value = btn.dataset.taskid;
+    console.log(document.getElementById('update_item').elements["title"].value)
+    
+    
+});
+
+{% comment %} let updateItem = document.getElementById('btn_update');
+updateItem.addEventListener('click',()=>{
+  document.getElementById('update_item').submit();
+}) {% endcomment %}
+
+// Delete Script
+const delModal = document.getElementById('_deleteModal');
+delModal.addEventListener('show.bs.modal',(e)=>{
+    let btn = e.relatedTarget;
+  let delItem = document.getElementById('_delitem');
+  delItem.value = btn.dataset.itemid;
+
+
+});
+
+{% comment %} let deleteItem = document.getElementById('btn_delete');
+deleteItem.addEventListener('click',()=>{
+  document.getElementById('delete_item').submit();
+}) {% endcomment %}
+
+
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
+}
+
+// Function for POST and UPDATE
+
+
+function operation_data(url,formData,method_type)
+{
+ 
+  fetch(url,{
+    method:method_type,
+    credentials: "same-origin",
+    headers: {
+      "X-Requested-With":"XMLHttpRequest",
+      "X-CSRFToken":getCookie("csrftoken"),
+    },
+    body: JSON.stringify({payload: formData })
+  })
+  .then(response => response.json())
+  .then(data=>{
+    console.log(data);
+  });
+
+}
+
+
+// POST Request
+
+post_form_submit = document.getElementById('submit-task-form');
+post_form_submit.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  let formData = {
+  title: post_form_submit.elements["title"].value,
+  }
+  url = '{% url 'todo:todo_add' %}'
+  method_type = "POST"
+  operation_data(url,formData,method_type)
+  post_form_submit.reset()
+
+})
+
+
+
+// Get Request
+
+
+
+let getUrl = '{% url 'todo:todo_show' %}'
+  fetch(getUrl,{
+      method:"GET",
+      headers:{
+        "X-Requested-With":"XMLHttpRequest",
+      }
+    
+    })
+    .then(response => response.json())
+    .then((data)=>{
+      let html_data = '';
+      let card_data =  document.getElementById('todo_list');
+    
+        for (let x in data){
+          data[x].forEach(item=>{
+              html_data+= `<div class="col-lg-4 col-sm-4">
+            <div class="card" style="width: 18rem;">
+              {% comment %} <img src="..." class="card-img-top" alt="...">  {% endcomment %}
+              <div class="card-body m-3">
+                <h4 class="card-title">${item.title}</h4>
+               
+    
+                <button class="btn btn-primary" data-taskid = "${item.id}" data-bs-toggle="modal" data-bs-target="#editModal" >update</button>
+              
+                <button class="btn btn-success" data-itemid = "${item.id}" data-bs-toggle="modal" data-bs-target="#_deleteModal" >completed</button>
+              </div>
+          
+            </div>
+          </div>  `;
+    
+         
+          card_data.innerHTML = html_data
+            })
+        }
+    
+    
+      
+    }); 
+
+
+
+
+// PUT Request
+
+
+
+
+
+post_form_update = document.getElementById('update_item');
+post_form_update.addEventListener('submit',(e)=>{
+  console.log("clicked")
+  e.preventDefault();
+  let formData = {
+  title: post_form_update.elements["title"].value,
+  id: post_form_update.elements["todoitem"].value,
+  }
+  console.log(formData)
+  let update_url = '{% url 'todo:todo_update_view' %}'
+  let method_type = "PUT"
+  operation_data(update_url,formData,method_type)
+
+})
+
+
+// DELETE Request
+
+
+let deleteItem = document.getElementById('delete_item');
+deleteItem.addEventListener('submit',(e)=>{
+  e.preventDefault()
+  console.log("Delete button")
+  let formData = {
+    id: deleteItem.elements["_delitem"].value
+  }
+  
+  let del_url = "{% url 'todo:todo_delete_view' %} ";
+  fetch(del_url,{
+    method:"DELETE",
+    credentials:"same-origin",
+    headers:{
+      "X-Requested-With":"XMLHttpRequest",
+      "X-CSRFToken":getCookie("csrftoken"),
+    },
+    body: JSON.stringify({payload: formData })
+  })
+  .then(response=>response.json())
+  .then(data=>console.log(data))
+
+  
+})
+
+
+
+
+
+
+</script>
+
+</body>
+</html>
