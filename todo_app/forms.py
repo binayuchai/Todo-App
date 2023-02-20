@@ -1,9 +1,17 @@
 from django import forms
 from todo_app.models import TODO
-
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 class TODOForm(forms.ModelForm):
     
     class Meta:
         model = TODO
-        fields = "__all__"
+        exclude = ('user',)
+
+
+class UserRegisterForm(UserCreationForm):
+    email = forms.EmailField()
+    class Meta:  
+        model = User      
+        fields = ['username','email','password1','password2']

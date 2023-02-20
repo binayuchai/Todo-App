@@ -1,11 +1,8 @@
+{% extends 'base.html' %}
 {% load static %}
 
 
-
-
-{% comment %} Edit Modal start {% endcomment %}  
-
-
+{% block content %}
 {% comment %}ModalStart {% endcomment%}
 
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -23,7 +20,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button id="btn_update" type="submit" class="btn btn-primary">Save changes</button>
+          <button id="btn_update" type="submit" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
         </div>
       </form>
     
@@ -34,50 +31,37 @@
 
 {% comment %} Edit Modal ends{% endcomment %}  
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
-    <link href="{% static 'css/style.css' %}" rel="stylesheet" >
-  </head>
-<body>
  
+ {% if request.user.is_authenticated %}
   <div class="container">
-    <h1 class ="my-3">Todo App</h1>
+    <div class="my-3">
+    <h1 class ="my-3">Create Task</h1>
     <form id="submit-task-form" action="" method="post">
       {% csrf_token %}
         {{ form }}
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
+  </div>
     
+{% endif %}
 
 
+{% if not request.user.is_authenticated %}
+    
+<h4>Please login to see your task</h4>
+{% else %}
+
+  <div class="task p-4">
 
 
+    <h2>Your Task</h2>
 
-    <h3 class="my-4">Tasks To Do:</h3>
-   
     <div class="row" id="todo_list">
-      {% comment %} {% for c in context %}
-      <div class="col-lg-4 col-sm-4">
-        <div class="card" style="width: 18rem;">
-          {% comment %} <img src="..." class="card-img-top" alt="..."> 
-          <div class="card-body m-3">
-            <h4 class="card-title">{{ c.title }}</h4>
-           
-
-            <button class="btn btn-primary" data-taskid = "{{c.id}}" data-bs-toggle="modal" data-bs-target="#editModal" >update</button>
-          
-            <button class="btn btn-success" data-itemid = "{{c.id}}" data-bs-toggle="modal" data-bs-target="#_deleteModal" >completed</button>
-          </div>
-      
-        </div>
-      </div>  
-      {% endfor %} {% endcomment %}
+   
     </div>
 </div>
+{% endif %}
+
 
 
 
@@ -107,20 +91,21 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-        <button id="btn_delete" type ="submit" class="btn btn-danger">Yes</button>
+        <button id="btn_delete" type ="submit" class="btn btn-danger" data-bs-dismiss="modal">Yes</button>
       </div>
     </form>
     </div>
   </div>
 </div>
 <!-- ModalEnd -->
-
+{% endblock content %}
 
 {% comment %} Delete Modal ends {% endcomment %}  
 
-<script src="{% static 'js/bs.min.js' %}"></script>
+{% block script %}
+
+{{block.super}}
 <script src="{% static 'js/jquery.min.js' %}"></script>
-<script src="{% static 'js/main.js' %}"></script>
 
 
 <script type="text/javascript">
@@ -178,10 +163,10 @@ function getCookie(name) {
 // Function for POST and UPDATE
 
 
-function operation_data(url,formData,method_type)
+async function operation_data(url,formData,method_type)
 {
  
-  fetch(url,{
+  let response = await fetch(url,{
     method:method_type,
     credentials: "same-origin",
     headers: {
@@ -190,11 +175,11 @@ function operation_data(url,formData,method_type)
     },
     body: JSON.stringify({payload: formData })
   })
-  .then(response => response.json())
+  /*.then(response => response.json())
   .then(data=>{
     console.log(data);
-  });
-
+  }); */
+ return await response.json
 }
 
 
@@ -220,46 +205,50 @@ post_form_submit.addEventListener('submit',(e)=>{
 
 
 let getUrl = '{% url 'todo:todo_show' %}'
-  fetch(getUrl,{
-      method:"GET",
-      headers:{
-        "X-Requested-With":"XMLHttpRequest",
-      }
-    
-    })
-    .then(response => response.json())
-    .then((data)=>{
-      let html_data = '';
-      let card_data =  document.getElementById('todo_list');
-    
-        for (let x in data){
-          data[x].forEach(item=>{
-              html_data+= `<div class="col-lg-4 col-sm-4">
-            <div class="card" style="width: 18rem;">
-              {% comment %} <img src="..." class="card-img-top" alt="...">  {% endcomment %}
-              <div class="card-body m-3">
-                <h4 class="card-title">${item.title}</h4>
-               
-    
-                <button class="btn btn-primary" data-taskid = "${item.id}" data-bs-toggle="modal" data-bs-target="#editModal" >update</button>
-              
-                <button class="btn btn-success" data-itemid = "${item.id}" data-bs-toggle="modal" data-bs-target="#_deleteModal" >completed</button>
-              </div>
-          
-            </div>
-          </div>  `;
-    
-         
-          card_data.innerHTML = html_data
-            })
-        }
-    
-    
+
+async function get_data(){
+  try{
+      let response = await fetch(getUrl,{
+          method:"GET",
+          headers:{
+            "X-Requested-With":"XMLHttpRequest",
+            "Content-Type":"application/json"
+          }
+        
+        })
+
+        let data = await response.json()
+        console.log(data)
+        let html_data = '';
+        let card_data =  document.getElementById('todo_list');
       
-    }); 
+          for (let x in data){
+            data[x].forEach(item=>{
+                card_data.innerHTML+= `<div class="col-lg-4 col-sm-4">
+              <div class="card" style="width: 18rem;">
+              <div class="card-body m-3">
+                  <h4 class="card-title">${item.title}</h4>
+                
+      
+                  <button class="btn btn-primary" data-taskid = "${item.id}" data-bs-toggle="modal" data-bs-target="#editModal" >update</button>
+                
+                  <button class="btn btn-success" data-itemid = "${item.id}" data-bs-toggle="modal" data-bs-target="#_deleteModal" >completed</button>
+                </div>
+            
+              </div>
+            </div>  `; 
+      
+          
+              })
+          }
 
 
-
+      }
+      catch(error){
+        console.log(error)
+      }
+}
+    get_data()
 
 // PUT Request
 
@@ -310,12 +299,7 @@ deleteItem.addEventListener('submit',(e)=>{
   
 })
 
-
-
-
-
-
 </script>
 
-</body>
-</html>
+
+{% endblock script %}
